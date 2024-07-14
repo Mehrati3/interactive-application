@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /* Importing fonts from Google */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        /* Reseting */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #ecf0f3;
+        }
+
+        .wrapper {
+            max-width: 650px;
+            /* min-height: 500px; */
+            margin: 80px auto;
+            padding: 40px 30px 30px 30px;
+            background-color: #ecf0f3;
+            border-radius: 15px;
+            box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
+        }
+
+        .logo {
+            width: 80px;
+            margin: auto;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: 0px 0px 3px #5f5f5f,
+                        0px 0px 0px 5px #ecf0f3,
+                        8px 8px 15px #a7aaa7,
+                        -8px -8px 15px #fff;
+        }
+
+        .wrapper .name {
+            font-weight: 600;
+            font-size: 1.4rem;
+            letter-spacing: 1.3px;
+            padding-left: 10px;
+            color: #555;
+        }
+
+        .wrapper .form-field input,
+        .wrapper .form-field select {
+            width: 100%;
+            display: block;
+            border: none;
+            outline: none;
+            background: none;
+            font-size: 1.2rem;
+            color: #666;
+            padding: 10px 15px 10px 10px;
+        }
+
+        .wrapper .form-field {
+            padding-left: 10px;
+            margin-bottom: 20px;
+            border-radius: 20px;
+            box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
+        }
+
+        .wrapper .form-field .fas {
+            color: #555;
+        }
+
+        .wrapper .btn {
+            box-shadow: none;
+            width: 100%;
+            height: 40px;
+            background-color: #03A9F4;
+            color: #fff;
+            border-radius: 25px;
+            box-shadow: 3px 3px 3px #b1b1b1,
+                        -3px -3px 3px #fff;
+            letter-spacing: 1.3px;
+        }
+
+        .wrapper .btn:hover {
+            background-color: #039BE5;
+        }
+
+        .wrapper a {
+            text-decoration: none;
+            font-size: 0.8rem;
+            color: #03A9F4;
+        }
+
+        .wrapper a:hover {
+            color: #039BE5;
+        }
+
+        @media(max-width: 380px) {
+            .wrapper {
+                margin: 30px 20px;
+                padding: 40px 15px 15px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div style="text-align: center;" class="mt-4 name">
+          Feed
+        </div>
+        <br>
+        <form method="post" action="/feed" class="p-3 mt-3" up-submit>
+          <p class="mt-5 name">Add feed</p>
+          <div class="form-field d-flex align-items-center">
+            <span class="far fa-user"></span>
+            <input type="url" name="add-url" id="add-url" placeholder="Add feed URL" >
+          </div>
+          <button type="submit" class="btn mt-3">Add</button>
+        </form>
+        <form method="post" action="/remove-feed" class="p-3 mt-3">
+            <p class="mt-2 name">Remove feed</p>
+            <div class="form-field d-flex align-items-center">
+                <!-- <span class="fas fa-key"></span> -->
+                <select name="remove" id="remove">
+                <option disabled hidden selected>Select a feed to remove</option>
+                <!-- Options will be dynamically added by JavaScript -->
+                </select>
+            </div>
+            <div id="error-message" style="display: none; color: red;"></div>
+            
+            <button type="submit" value="removeee" class="btn mt-3">Remove</button>
+        </form>
+        
+        <br><br><br>
+      
+        <div class="feeds-container">
+          <!-- Feed data will be dynamically added by JavaScript -->
+        </div>
+      
+        <form method="post" action="/logout" class="p-3 mt-3">
+          <button type="submit" class="btn mt-3">Logout</button>
+        </form>
+      </div>
+        <script src="https://unpkg.com/unpoly@0.60.0/dist/unpoly.min.js"></script>
+        <script>
+            document.addEventListener('up:submit', function (event) {
+                var form = event.target;
+
+                if (form.hasAttribute('up-submit')) {
+                    event.preventDefault();
+
+                    var formData = new FormData(form);
+                    var url = form.getAttribute('action');
+                    var method = form.getAttribute('method');
+
+                    if (method === 'post') {
+                        var button = event.detail.button;
+
+                        if (button && button.hasAttribute('up-action') && button.getAttribute('up-action') === 'up-remove') {
+                            // Remove feed
+                            var feedUrl = formData.get('remove');
+                            // Perform the necessary action to remove the feed from the database and update the UI accordingly
+                            // ...
+                        } else {
+                            // Add feed
+                            var feedUrl = formData.get('add-url').trim();
+                            var addUrl = '/feed/add';
+
+                            if (feedUrl === '') {
+                                showError('URL is required.');
+                                return;
+                            }
+
+                            if (!isValidUrl(feedUrl)) {
+                                showError('Invalid URL.');
+                                return;
+                            }
+
+                            up.request(addUrl, {
+                                method: 'POST',
+                                body: {
+                                    addUrl: feedUrl
+                                }
+                            }).then(function (response) {
+                                // Handle the response and update the UI accordingly
+                                var html = response.html;
+                                var feedsContainer = document.querySelector('.feeds-container');
+                                feedsContainer.innerHTML = html;
+                                addOptionToSelect(feedUrl);
+                                fetchFeedData(feedUrl); // Fetch and render the feed data
+                            }).catch(function (error) {
+                                console.error('Error:', error);
+                            });
+                        }
+                    }
+                }
+            });
+
+            function addOptionToSelect(url) {
+                var select = document.getElementById('remove');
+                var option = document.createElement('option');
+                option.value = url;
+                option.text = url;
+                select.add(option);
+            }
+
+            function showError(message) {
+                var errorDiv = document.getElementById('error-message');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+
+            function isValidUrl(url) {
+                var pattern = /^(ftp|http|https):\/\/[^ "]+$/;
+                return pattern.test(url);
+            }
+
+            function fetchFeedData(feedUrl) {
+                var feedContainer = document.createElement('div');
+                feedContainer.className = 'feed-container';
+                feedContainer.innerHTML = '<p>Loading feed...</p>';
+
+                fetch(feedUrl)
+                    .then(function (response) {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            throw new Error('Failed to fetch feed data');
+                        }
+                    })
+                    .then(function (feedData) {
+                        var parser = new DOMParser();
+                        var xmlDoc = parser.parseFromString(feedData, 'application/xml');
+                        varfeedItems = xmlDoc.querySelectorAll('item'); // Adjust the selector based on the feed structure
+
+                        if (feedItems.length > 0) {
+                            var html = '<ul>';
+                            feedItems.forEach(function (item) {
+                                var title = item.querySelector('title').textContent;
+                                var link = item.querySelector('link').textContent;
+                                var description = item.querySelector('description').textContent;
+                                html += '<li><a href="' + link + '">' + title + '</a><p>' + description + '</p></li>';
+                            });
+                            html += '</ul>';
+                            feedContainer.innerHTML = html;
+                        } else {
+                            feedContainer.innerHTML = '<p>No items found in the feed.</p>';
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Error:', error);
+                        feedContainer.innerHTML = '<p>Failed to load the feed.</p>';
+                    });
+
+                var feedsContainer = document.querySelector('.feeds-container');
+                feedsContainer.appendChild(feedContainer);
+            }
+        </script>
+</body>
+</html>
